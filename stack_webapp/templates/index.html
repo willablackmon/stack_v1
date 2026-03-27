@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ app_title }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/stack.css') }}">
+</head>
+<body>
+  <div class="stack-root">
+    <header class="stack-header-row">
+      <div class="stack-header-spacer"></div>
+      <div class="stack-header-title">{{ app_title }}</div>
+      <div class="stack-header-actions">
+        <button id="login-btn" class="stack-login-btn" type="button">Log In</button>
+      </div>
+    </header>
+
+    <main class="stack-main-row">
+      <section class="stack-left-col">
+        <div class="stack-agent-card">
+          <div class="stack-agent-title">Stack Agent</div>
+          <div id="agent-text" class="stack-agent-text">How can I help you today?</div>
+        </div>
+      </section>
+
+      <section class="stack-center-col">
+        <button id="opp-insights-btn" class="stack-main-btn" type="button">Opp Insights</button>
+        <div class="stack-btn-spacer"></div>
+        <button id="meeting-prep-btn" class="stack-main-btn" type="button">Meeting Prep</button>
+        <div class="stack-btn-spacer"></div>
+        <button id="opp-search-btn" class="stack-main-btn" type="button">Opp Search</button>
+      </section>
+
+      <section class="stack-right-col">
+        <div class="stack-panel">
+          <div id="output-title" class="stack-panel-title">Output</div>
+          <div id="output-area" class="stack-output-message">
+            Click one of the center buttons to run a function and display results here.
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const agentText = document.getElementById('agent-text');
+    const outputTitle = document.getElementById('output-title');
+    const outputArea = document.getElementById('output-area');
+    const loginBtn = document.getElementById('login-btn');
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    function setAgentText(text) {
+      agentText.textContent = text;
+    }
+
+    function renderMessage(title, message) {
+      outputTitle.textContent = title;
+      outputArea.innerHTML = `<div class="stack-output-message">${escapeHtml(message)}</div>`;
+    }
+
+    function renderTable(title, columns, rows) {
+      outputTitle.textContent = title;
+
+      if (!rows || rows.length === 0) {
+        outputArea.innerHTML = '<div class="stack-output-message">No rows returned.</div>';
+        return;
+      }
+
+      const thead = `<thead><tr>${columns.map(col => `<th>${escapeHtml(col)}</th>`).join('')}</tr></thead>`;
+      const tbody = `<tbody>${rows.map(row => `<tr>${columns.map(col => `<td>${escapeHtml(row[col] ?? '')}</td>`).join('')}</tr>`).join('')}</tbody>`;
+
+      outputArea.innerHTML = `<div class="stack-table-wrap"><table class="stack-table">${thead}${tbody}</table></div>`;
+    }
+
+    async function runAction(url, pendingText, pendingTitle, options = {}) {
+      setAgentText(pendingText);
+      renderMessage(pendingTitle, 'Working...');
+
+      try {
+        const response = await fetch(url, options);
+        const payload = await response.json();
+
+        setAgentText(payload.agent_text || 'Done.');
+
+        if (payload.type === 'table') {
+          renderTable(payload.title || pendingTitle, payload.columns || [], payload.rows || []);
+        } else {
+          renderMessage(payload.title || pendingTitle, payload.message || 'No response returned.');
+        }
+
+        if (!response.ok) {
+          console.error(payload);
+        }
+
+        return payload;
+      } catch (error) {
+        setAgentText(`${pendingTitle} failed.`);
+        renderMessage(pendingTitle, `Error:
+
+${error}`);
+        throw error;
+      }
+    }
+
+    loginBtn.addEventListener('click', async () => {
+      const payload = await runAction('/api/login', 'Logging in to HubSpot...', 'Log In', { method: 'POST' });
+      if (payload && payload.agent_text === 'HubSpot login successful.') {
+        loginBtn.textContent = 'Logged in';
+        loginBtn.disabled = true;
+      }
+    });
+
+    document.getElementById('opp-insights-btn').addEventListener('click', () => {
+      runAction('/api/opp-insights', 'Running Opportunity Insights...', 'Opp Insights');
+    });
+
+    document.getElementById('meeting-prep-btn').addEventListener('click', () => {
+      runAction('/api/meeting-prep', 'Preparing meeting summary...', 'Meeting Prep');
+    });
+
+    document.getElementById('opp-search-btn').addEventListener('click', () => {
+      runAction('/api/opp-search', 'Searching opportunities...', 'Opp Search');
+    });
+  </script>
+</body>
+</html>

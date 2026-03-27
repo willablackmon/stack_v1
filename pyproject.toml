@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "stack-webapp"
+version = "0.1.0"
+description = "Small Flask web app version of the Stack notebook MVP"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "Flask>=3.0,<4.0",
+  "python-dotenv>=1.0,<2.0",
+  "hubspot-api-client>=9.0",
+]
+
+[project.scripts]
+stack-webapp = "stack_webapp.__main__:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["stack_webapp*"]

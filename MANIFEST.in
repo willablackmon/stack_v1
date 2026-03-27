@@ -1,0 +1,4 @@
+recursive-include stack_webapp/templates *.html
+recursive-include stack_webapp/static *.css *.js
+include README.md
+include .env.example
