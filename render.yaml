@@ -16,3 +16,5 @@ services:
         sync: false
       - key: FLASK_SECRET_KEY
         generateValue: true
+      - key: DEBUG_USERID
+        value: true

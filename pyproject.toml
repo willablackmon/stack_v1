@@ -12,6 +12,7 @@ dependencies = [
   "Flask>=3.0,<4.0",
   "python-dotenv>=1.0,<2.0",
   "hubspot-api-client>=9.0",
+  "gunicorn>=22,<24",
 ]
 
 [project.scripts]

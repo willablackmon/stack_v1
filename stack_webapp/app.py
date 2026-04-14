@@ -8,38 +8,48 @@ from .config import Config, load_environment
 from .utils.data_providers import (
     MEETING_COLUMNS,
     get_meeting_prep,
+    get_my_owned_companies,
     get_opp_insights,
     get_opp_search,
+    run_hubspot_login,
+    run_userid_debug_probes,
 )
-from .utils.hubspot_client import login_preview
 from .utils.table_helpers import normalize_rows
 
 
-def _table_response(title: str, agent_text: str, rows: list[dict[str, Any]], columns: list[str] | None = None):
+def _table_response(title: str, agent_text: str, rows: list[dict[str, Any]], columns: list[str] | None = None, **extra):
     cols, normalized_rows = normalize_rows(rows, columns)
-    return jsonify(
-        {
-            "title": title,
-            "agent_text": agent_text,
-            "type": "table",
-            "columns": cols,
-            "rows": normalized_rows,
-        }
-    )
+    payload = {
+        "title": title,
+        "agent_text": agent_text,
+        "type": "table",
+        "columns": cols,
+        "rows": normalized_rows,
+    }
+    payload.update(extra)
+    return jsonify(payload)
 
 
-def _message_response(title: str, agent_text: str, message: str, status: int = 200):
-    return (
-        jsonify(
-            {
-                "title": title,
-                "agent_text": agent_text,
-                "type": "message",
-                "message": message,
-            }
-        ),
-        status,
-    )
+def _browser_response(title: str, agent_text: str, rows: list[dict[str, Any]], item_type: str, **extra):
+    payload = {
+        "title": title,
+        "agent_text": agent_text,
+        "type": item_type,
+        "rows": rows,
+    }
+    payload.update(extra)
+    return jsonify(payload)
+
+
+def _message_response(title: str, agent_text: str, message: str, status: int = 200, **extra):
+    payload = {
+        "title": title,
+        "agent_text": agent_text,
+        "type": "message",
+        "message": message,
+    }
+    payload.update(extra)
+    return jsonify(payload), status
 
 
 def create_app() -> Flask:
@@ -50,7 +60,11 @@ def create_app() -> Flask:
 
     @app.get("/")
     def index():
-        return render_template("index.html", app_title=app.config["APP_TITLE"])
+        return render_template(
+            "index.html",
+            app_title=app.config["APP_TITLE"],
+            debug_userid=bool(app.config.get("DEBUG_USERID", False)),
+        )
 
     @app.get("/health")
     def health():
@@ -58,17 +72,24 @@ def create_app() -> Flask:
 
     @app.post("/api/login")
     def api_login():
+        token = app.config.get("HS_TOKEN", "")
         try:
-            preview = login_preview(app.config.get("HS_TOKEN", ""))
-            if preview:
-                return _table_response("Log In", "HubSpot login successful.", [preview])
-            return _message_response(
+            login_info = run_hubspot_login(token)
+            _login_info, owned_companies = get_my_owned_companies(token)
+            owner_ids = sorted({str(r.get("hubspot_owner_id", "")).strip() for r in owned_companies if str(r.get("hubspot_owner_id", "")).strip()})
+            debug = run_userid_debug_probes(token, login_info, owner_ids=owner_ids) if app.config.get("DEBUG_USERID") else None
+            return _table_response(
                 "Log In",
                 "HubSpot login successful.",
-                "Logged in successfully. Test contact returned no properties.",
+                [login_info],
+                debug=debug,
             )
         except Exception as exc:
             return _message_response("Log In", "HubSpot login failed.", f"Login failed:\n\n{exc}", status=500)
+
+    @app.post("/api/logout")
+    def api_logout():
+        return _message_response("Logout", "Logged out of HubSpot. Click Log In to test again.", "HubSpot session cleared.")
 
     @app.get("/api/opp-insights")
     def api_opp_insights():
@@ -79,46 +100,46 @@ def create_app() -> Flask:
                 get_opp_insights(),
             )
         except Exception as exc:
-            return _message_response(
-                "Opp Insights",
-                "Opportunity Insights failed.",
-                f"Error:\n\n{exc}",
-                status=500,
+            return _message_response("Opp Insights", "Opportunity Insights failed.", f"Error:\n\n{exc}", status=500)
+
+    @app.get("/api/my-companies")
+    def api_my_companies():
+        try:
+            login_info, rows = get_my_owned_companies(app.config.get("HS_TOKEN", ""))
+            return _browser_response(
+                "My Companies",
+                f"My Companies loaded: {len(rows)} row(s).",
+                rows,
+                "companies_browser",
+                token_user_id=login_info.get("token_user_id", ""),
             )
+        except Exception as exc:
+            return _message_response("My Companies", "My Companies failed.", f"Error:\n\n{exc}", status=500)
 
     @app.get("/api/meeting-prep")
     def api_meeting_prep():
         try:
+            login_info = run_hubspot_login(app.config.get("HS_TOKEN", ""))
             rows = get_meeting_prep(app.config.get("HS_TOKEN", ""))
-            return _table_response(
+            return _browser_response(
                 "Meeting Prep",
-                "Meeting Prep complete.",
+                f"Meeting Prep complete for userId {login_info.get('token_user_id', '')}: {len(rows)} meeting(s).",
                 rows,
-                MEETING_COLUMNS,
+                "meetings_browser",
             )
         except Exception as exc:
-            return _message_response(
-                "Meeting Prep",
-                "Meeting Prep failed.",
-                f"Error:\n\n{exc}",
-                status=500,
-            )
+            return _message_response("Meeting Prep", "Meeting Prep failed.", f"Error:\n\n{exc}", status=500)
 
     @app.get("/api/opp-search")
     def api_opp_search():
         try:
             return _table_response(
-                "Opp Search",
+                "Opp Search (not ready)",
                 "Opportunity search complete.",
                 get_opp_search(),
             )
         except Exception as exc:
-            return _message_response(
-                "Opp Search",
-                "Opportunity search failed.",
-                f"Error:\n\n{exc}",
-                status=500,
-            )
+            return _message_response("Opp Search (not ready)", "Opportunity search failed.", f"Error:\n\n{exc}", status=500)
 
     @app.errorhandler(404)
     def not_found(_exc):

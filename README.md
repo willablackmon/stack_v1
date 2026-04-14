@@ -1,15 +1,15 @@
 # Stack Web App for Render
 
-This version is prepared specifically for a GitHub -> Render deployment.
+This package is the Render-ready web app version of the updated `stack-v0.1.ipynb` notebook.
 
 ## What is included
 
 - Flask app packaged under `stack_webapp/`
 - `render.yaml` Blueprint for one Render web service
 - `requirements.txt` for Render's standard Python build flow
-- `.python-version` plus `PYTHON_VERSION` in `render.yaml` to pin Python
 - `.env.example` for local development only
 - `.gitignore` that keeps `.env` out of Git
+- `wsgi.py` entrypoint for Render / Gunicorn
 
 ## Project layout
 
@@ -30,24 +30,22 @@ stack_webapp_render/
     ├── config.py
     ├── wsgi.py
     ├── static/
-    ├── templates/
+    │   ├── css/stack.css
+    │   └── js/app.js
+    ├── templates/index.html
     └── utils/
+        ├── __init__.py
+        ├── data_providers.py
+        ├── hubspot_client.py
+        └── table_helpers.py
 ```
 
 ## Local development
 
-1. Create a virtual environment.
-2. Install dependencies:
-
 ```bash
 pip install -r requirements.txt
 pip install -e .
-```
-
-3. Copy `.env.example` to `.env` and add your real HubSpot token.
-4. Run locally:
-
-```bash
+cp .env.example .env
 python -m stack_webapp
 ```
 
@@ -77,16 +75,5 @@ Add these environment variables in Render:
 - `HS_TOKEN` = your HubSpot private app token
 - `FLASK_SECRET_KEY` = a random secret string
 - `APP_TITLE` = `Stack` (optional)
+- `DEBUG_USERID` = `true` or `false`
 - `PYTHON_VERSION` = `3.11.11`
-
-## Security notes
-
-- Do **not** commit a real `.env` file.
-- For Render, keep secrets in the Render dashboard or let the Blueprint prompt you for them.
-- `Opp Insights` and `Opp Search` are still placeholders, matching the current notebook conversion.
-
-## Entrypoint used by Render
-
-```bash
-gunicorn --bind 0.0.0.0:$PORT stack_webapp.wsgi:app
-```
