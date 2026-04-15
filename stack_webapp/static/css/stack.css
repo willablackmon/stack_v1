@@ -150,13 +150,13 @@ body {
 .stack-browser-list {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
 }
 
 .stack-browser-row {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
 }
 
 .stack-open-btn {
@@ -164,25 +164,27 @@ body {
     color: #444;
     border: 1px solid #d0d0d0;
     border-radius: 8px;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
-    height: 32px;
-    min-width: 80px;
+    height: 26px;
+    min-width: 64px;
     cursor: pointer;
 }
 
 .stack-browser-detail {
-    line-height: 1.35;
+    line-height: 1.1;
+    padding: 2px 0;
+    word-break: break-word;
 }
 
 .stack-browser-box {
-    margin-top: 18px;
+    margin-top: 10px;
 }
 
 .stack-browser-card {
     border: 1px solid #d8d8d8;
     border-radius: 8px;
-    padding: 10px;
+    padding: 8px;
     background: white;
     white-space: normal;
 }

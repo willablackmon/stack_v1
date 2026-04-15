@@ -71,15 +71,16 @@ function renderCompaniesBrowser(title, rows, tokenUserId) {
     <div class="stack-browser-row">
       <button class="stack-open-btn" data-company-index="${idx}" type="button">Open</button>
       <div class="stack-browser-detail">
-        <div><b>${escapeHtml(row.company_label || row.name || row.id || '')}</b></div>
-        <div>Website: ${escapeHtml(row.website_display || row.website || row.homepage_url || '')}</div>
+        <b>${escapeHtml(row.company_label || row.name || row.id || '')}</b>
+        &nbsp;|&nbsp;
+        ${escapeHtml(row.website_display || row.website || row.homepage_url || '')}
       </div>
     </div>`).join('');
 
   outputArea.innerHTML = `
     <div class="stack-browser-list">${listHtml}</div>
     <div class="stack-browser-box">
-      <div style="margin:0 0 8px 0; font-weight:600;">Selected Company Site</div>
+      <div style="margin:0 0 6px 0; font-weight:600;">Selected Company Site</div>
       <div id="company-detail" class="stack-browser-card">Click Open to load the selected company site below.</div>
     </div>`;
 
@@ -94,9 +95,9 @@ function renderCompaniesBrowser(title, rows, tokenUserId) {
         return;
       }
       detail.innerHTML = `
-        <div style="font-weight:600; margin:0 0 8px 0;">${escapeHtml(label)}</div>
-        <div style="margin:0 0 8px 0;"><a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a></div>
-        <iframe src="${escapeHtml(url)}" style="width:100%; height:520px; border:1px solid #d8d8d8; border-radius:8px; background:white;"></iframe>`;
+        <div style="font-weight:600; margin:0 0 6px 0;">${escapeHtml(label)}</div>
+        <div style="margin:0 0 6px 0;"><a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a></div>
+        <iframe src="${escapeHtml(url)}" style="width:100%; height:420px; border:1px solid #d8d8d8; border-radius:8px; background:white;"></iframe>`;
     });
   });
 }
@@ -109,14 +110,16 @@ function renderMeetingsBrowser(title, rows) {
   }
 
   const listHtml = rows.map((row, idx) => {
-    const rowTitle = row.matched_company_names || `Meeting ${row.id || ''}`;
+    const rowTitle = row.matched_company_names || row.company_contacts_summary || `Meeting ${row.id || ''}`;
     return `
       <div class="stack-browser-row">
         <button class="stack-open-btn" data-meeting-index="${idx}" type="button">Open</button>
         <div class="stack-browser-detail">
-          <div><b>${escapeHtml(rowTitle)}</b></div>
-          <div>Meeting ID: ${escapeHtml(row.id || '')}</div>
-          <div>Start: ${escapeHtml(row.hs_meeting_start_time || '')}</div>
+          <b>${escapeHtml(rowTitle)}</b>
+          &nbsp;|&nbsp;
+          Meeting ID: ${escapeHtml(row.id || '')}
+          &nbsp;|&nbsp;
+          Start: ${escapeHtml(row.hs_meeting_start_time || '')}
         </div>
       </div>`;
   }).join('');
@@ -124,7 +127,7 @@ function renderMeetingsBrowser(title, rows) {
   outputArea.innerHTML = `
     <div class="stack-browser-list">${listHtml}</div>
     <div class="stack-browser-box">
-      <div style="margin:0 0 8px 0; font-weight:600;">Selected Meeting Details</div>
+      <div style="margin:0 0 6px 0; font-weight:600;">Selected Meeting Details</div>
       <div id="meeting-detail" class="stack-browser-card">Click Open to load meeting details below.</div>
     </div>`;
 
@@ -132,15 +135,14 @@ function renderMeetingsBrowser(title, rows) {
   outputArea.querySelectorAll('[data-meeting-index]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const row = rows[Number(btn.dataset.meetingIndex)];
-      const rowTitle = row.matched_company_names || `Meeting ${row.id || ''}`;
+      const rowTitle = row.matched_company_names || row.company_contacts_summary || `Meeting ${row.id || ''}`;
       detail.innerHTML = `
-        <div style="font-weight:600; margin:0 0 8px 0;">${escapeHtml(rowTitle)}</div>
-        <div style="margin:0 0 6px 0;"><b>Meeting ID:</b> ${escapeHtml(row.id || '')}</div>
-        <div style="margin:0 0 6px 0;"><b>Date/Time:</b> ${escapeHtml(row.hs_meeting_start_time || '')} - ${escapeHtml(row.hs_meeting_end_time || '')}</div>
-        <div style="margin:0 0 6px 0;"><b>Associated Company IDs:</b> ${escapeHtml(row.associated_company_ids || '')}</div>
-        <div style="margin:0 0 6px 0;"><b>Matched Company IDs:</b> ${escapeHtml(row.matched_company_ids || '')}</div>
-        <div style="margin:10px 0 6px 0;"><b>Meeting Notes / Preview:</b></div>
-        <div style="white-space:pre-wrap; border:1px solid #d8d8d8; border-radius:8px; padding:10px; background:white;">${escapeHtml(row.hs_body_preview || '')}</div>`;
+        <div style="font-weight:600; margin:0 0 6px 0;">${escapeHtml(rowTitle)}</div>
+        <div style="margin:0 0 4px 0;"><b>Meeting ID:</b> ${escapeHtml(row.id || '')}</div>
+        <div style="margin:0 0 4px 0;"><b>Date/Time:</b> ${escapeHtml(row.hs_meeting_start_time || '')} - ${escapeHtml(row.hs_meeting_end_time || '')}</div>
+        <div style="margin:0 0 4px 0;"><b>Matched Company IDs:</b> ${escapeHtml(row.matched_company_ids || '')}</div>
+        <div style="margin:0 0 6px 0;"><b>All Company IDs:</b> ${escapeHtml(row.associated_company_ids || '')}</div>
+        <div style="white-space:pre-wrap; border:1px solid #d8d8d8; border-radius:8px; padding:8px; background:white;">${escapeHtml(row.hs_body_preview || '')}</div>`;
     });
   });
 }

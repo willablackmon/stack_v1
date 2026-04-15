@@ -24,4 +24,4 @@ class Config:
     SECRET_KEY = os.getenv("FLASK_SECRET_KEY", "stack-dev-secret")
     HS_TOKEN = os.getenv("HS_TOKEN", "")
     DEFAULT_PORT = int(os.getenv("PORT", "8000"))
-    DEBUG_USERID = str(os.getenv("DEBUG_USERID", "true")).strip().lower() in {"1", "true", "yes", "on"}
+    DEBUG_USERID = str(os.getenv("DEBUG_USERID", "false")).strip().lower() in {"1", "true", "yes", "on"}
