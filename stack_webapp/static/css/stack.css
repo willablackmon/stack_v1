@@ -222,3 +222,74 @@ body {
 }
 
 .stack-debug-shell { margin-top: 18px; }
+
+
+.stack-browser-row-compact {
+    gap: 6px;
+    padding: 0;
+}
+
+.stack-browser-detail-compact {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+    flex-wrap: wrap;
+    font-size: 12px;
+    line-height: 1.0;
+    padding: 0;
+}
+
+.stack-browser-title {
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.stack-browser-meta,
+.stack-browser-sep {
+    color: #555;
+}
+
+.stack-browser-box-title {
+    margin: 0 0 4px 0;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.stack-browser-detail-title {
+    font-weight: 600;
+    margin: 0 0 4px 0;
+    font-size: 13px;
+}
+
+.stack-browser-detail-link,
+.stack-browser-detail-meta {
+    margin: 0 0 3px 0;
+    font-size: 12px;
+    line-height: 1.2;
+}
+
+.stack-browser-note {
+    white-space: pre-wrap;
+    border: 1px solid #d8d8d8;
+    border-radius: 8px;
+    padding: 6px;
+    background: white;
+    font-size: 12px;
+    line-height: 1.25;
+}
+
+.stack-debug-shell {
+    display: none;
+    margin-top: 18px;
+}
+
+.stack-table {
+    font-size: 12px;
+}
+
+.stack-table th,
+.stack-table td {
+    padding: 4px 6px;
+}

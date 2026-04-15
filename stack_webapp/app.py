@@ -78,7 +78,7 @@ def create_app() -> Flask:
         return render_template(
             "index.html",
             app_title=app.config["APP_TITLE"],
-            debug_userid=bool(app.config.get("DEBUG_USERID", False)),
+            debug_userid=False,
         )
 
     @app.get("/health")
@@ -93,7 +93,7 @@ def create_app() -> Flask:
             preload = build_login_preload_payload(token, force_refresh=True)
             _login_info, owned_companies = get_my_owned_companies(token)
             owner_ids = sorted({str(r.get("hubspot_owner_id", "")).strip() for r in owned_companies if str(r.get("hubspot_owner_id", "")).strip()})
-            debug = run_userid_debug_probes(token, login_info, owner_ids=owner_ids) if app.config.get("DEBUG_USERID") else None
+            debug = None
             return _login_preload_response(
                 "Log In",
                 build_connected_agent_text(login_info),
