@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "stack-webapp"
-version = "0.1.0"
-description = "Small Flask web app version of the Stack notebook MVP"
+version = "0.2.0"
+description = "Small Flask web app version of the Stack notebook web app synced to stack-v0.2.ipynb"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

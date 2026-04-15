@@ -6,7 +6,8 @@ from flask import Flask, jsonify, render_template
 
 from .config import Config, load_environment
 from .utils.data_providers import (
-    MEETING_COLUMNS,
+    build_connected_agent_text,
+    build_login_preload_payload,
     get_meeting_prep,
     get_my_owned_companies,
     get_opp_insights,
@@ -36,6 +37,20 @@ def _browser_response(title: str, agent_text: str, rows: list[dict[str, Any]], i
         "agent_text": agent_text,
         "type": item_type,
         "rows": rows,
+    }
+    payload.update(extra)
+    return jsonify(payload)
+
+
+def _login_preload_response(title: str, agent_text: str, preload_text: str, rows: list[dict[str, Any]], columns: list[str] | None = None, **extra):
+    cols, normalized_rows = normalize_rows(rows, columns)
+    payload = {
+        "title": title,
+        "agent_text": agent_text,
+        "type": "login_preload",
+        "preload_text": preload_text,
+        "columns": cols,
+        "rows": normalized_rows,
     }
     payload.update(extra)
     return jsonify(payload)
@@ -75,17 +90,19 @@ def create_app() -> Flask:
         token = app.config.get("HS_TOKEN", "")
         try:
             login_info = run_hubspot_login(token)
+            preload = build_login_preload_payload(token, force_refresh=True)
             _login_info, owned_companies = get_my_owned_companies(token)
             owner_ids = sorted({str(r.get("hubspot_owner_id", "")).strip() for r in owned_companies if str(r.get("hubspot_owner_id", "")).strip()})
             debug = run_userid_debug_probes(token, login_info, owner_ids=owner_ids) if app.config.get("DEBUG_USERID") else None
-            return _table_response(
+            return _login_preload_response(
                 "Log In",
-                "HubSpot login successful.",
-                [login_info],
+                build_connected_agent_text(login_info),
+                preload.get("preload_text", ""),
+                preload.get("my_meetings_seed_rows", []),
                 debug=debug,
             )
         except Exception as exc:
-            return _message_response("Log In", "HubSpot login failed.", f"Login failed:\n\n{exc}", status=500)
+            return _message_response("Log In", "HubSpot connection failed.", f"Login failed:\n\n{exc}", status=500)
 
     @app.post("/api/logout")
     def api_logout():

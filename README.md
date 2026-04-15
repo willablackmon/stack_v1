@@ -1,6 +1,6 @@
 # Stack Web App for Render
 
-This package is the Render-ready web app version of the updated `stack-v0.1.ipynb` notebook.
+This package is the Render-ready web app version of the updated `stack-v0.2.ipynb` notebook.
 
 ## What is included
 
